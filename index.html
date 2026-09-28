@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Gallery App Preview</title>
+  <!-- मॉडर्न आइकॉन्स के लिए Remix Icon लाइब्रेरी -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: #F8FAFC;
+      color: #1E293B;
+      overflow-x: hidden;
+    }
+
+    /* टॉप ऐप बार */
+    header {
+      position: sticky;
+      top: 0;
+      background-color: #F8FAFC;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 18px;
+      z-index: 10;
+    }
+
+    .title-area {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 26px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .title-area i {
+      color: #2563EB;
+      font-size: 22px;
+      margin-top: 4px;
+    }
+
+    .header-icons {
+      display: flex;
+      gap: 18px;
+      font-size: 22px;
+      color: #1E293B;
+    }
+
+    .header-icons i {
+      cursor: pointer;
+    }
+
+    /* हॉरिजॉन्टल शॉर्टकट बार */
+    .shortcuts-container {
+      display: flex;
+      gap: 14px;
+      padding: 10px 16px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .shortcuts-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .shortcut-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 60px;
+      cursor: pointer;
+    }
+
+    .icon-box {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 6px;
+      transition: transform 0.15s ease;
+    }
+
+    .icon-box:active {
+      transform: scale(0.92);
+    }
+
+    .shortcut-item span {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748B;
+    }
+
+    /* आइकॉन्स और उनके रंग (स्क्रीनशॉट 1 के अनुसार) */
+    .bg-video { background-color: #E8F5E9; color: #00C853; }
+    .bg-storage { background-color: #E1F5FE; color: #0288D1; }
+    .bg-private { background-color: #EDE7F6; color: #536DFE; }
+    .bg-editor { background-color: #FCE4EC; color: #FF4081; }
+    .bg-recent { background-color: #FFF3E0; color: #FF6D00; }
+
+    /* फोटो ग्रिड (स्मूथ स्क्रॉलिंग) */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3px;
+      padding: 4px;
+    }
+
+    .grid-item {
+      aspect-ratio: 1 / 1;
+      background-color: #E2E8F0;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94A3B8;
+      font-size: 28px;
+      overflow: hidden;
+    }
+
+    .grid-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* बॉटम मेन्यू शीट (स्क्रीनशॉट 2 के अनुसार) */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      z-index: 100;
+    }
+
+    .bottom-sheet {
+      position: fixed;
+      left: 0;
+      bottom: -100%;
+      width: 100%;
+      background: #FFFFFF;
+      border-radius: 24px 24px 0 0;
+      padding: 12px 0 24px 0;
+      z-index: 101;
+      transition: bottom 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: #CBD5E1;
+      border-radius: 4px;
+      margin: 4px auto 14px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      font-size: 15px;
+      font-weight: 500;
+      color: #1E293B;
+      cursor: pointer;
+    }
+
+    .menu-item:active {
+      background-color: #F1F5F9;
+    }
+
+    .menu-item i {
+      font-size: 20px;
+      color: #2563EB;
+      margin-right: 18px;
+    }
+
+    .menu-item .menu-title {
+      flex: 1;
+    }
+
+    .divider {
+      height: 1px;
+      background: #F1F5F9;
+      margin: 6px 0;
+    }
+
+    /* टॉगल स्विच */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 42px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #CBD5E1;
+      transition: .3s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #2563EB;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(18px);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- टॉप हेडर -->
+  <header>
+    <div class="title-area">
+      <span>All</span>
+      <i class="ri-arrow-down-s-fill"></i>
+    </div>
+    <div class="header-icons">
+      <i class="ri-search-line"></i>
+      <i class="ri-camera-line"></i>
+      <i class="ri-more-2-fill" id="openMenuBtn"></i>
+    </div>
+  </header>
+
+  <!-- शॉर्टकट आइकॉन्स बार (इमेज 1) -->
+  <div class="shortcuts-container">
+    <div class="shortcut-item">
+      <div class="icon-box bg-video"><i class="ri-play-fill"></i></div>
+      <span>Videos</span>
+    </div>
+    <div class="shortcut-item">
+      <div class="icon-box bg-storage"><i class="ri-brush-3-line"></i></div>
+      <span>9.84 GB</span>
+    </div>
+    <div class="shortcut-item">
+      <div class="icon-box bg-private"><i class="ri-lock-2-line"></i></div>
+      <span>Private</span>
+    </div>
+    <div class="shortcut-item">
+      <div class="icon-box bg-editor"><i class="ri-magic-line"></i></div>
+      <span>Editor</span>
+    </div>
+    <div class="shortcut-item">
+      <div class="icon-box bg-recent"><i class="ri-time-line"></i></div>
+      <span>Recent</span>
+    </div>
+  </div>
+
+  <!-- स्मूथ गैलरी ग्रिड -->
+  <div class="gallery-grid" id="galleryGrid"></div>
+
+  <!-- बॉटम मेन्यू शीट (इमेज 2) -->
+  <div class="overlay" id="overlay"></div>
+  <div class="bottom-sheet" id="bottomSheet">
+    <div class="sheet-handle"></div>
+
+    <div class="menu-item">
+      <i class="ri-folder-image-line"></i>
+      <span class="menu-title">Expand all folders</span>
+      <label class="switch">
+        <input type="checkbox">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="menu-item"><i class="ri-sort-desc"></i><span class="menu-title">Sort by</span></div>
+    <div class="menu-item"><i class="ri-arrow-up-down-line"></i><span class="menu-title">Manual sorting</span></div>
+    <div class="menu-item"><i class="ri-layout-column-line"></i><span class="menu-title">Displayed columns</span></div>
+    <div class="menu-item"><i class="ri-list-check"></i><span class="menu-title">Change view mode</span></div>
+
+    <div class="divider"></div>
+
+    <div class="menu-item"><i class="ri-delete-bin-line"></i><span class="menu-title">Recycle bin</span></div>
+    <div class="menu-item"><i class="ri-add-line"></i><span class="menu-title">Create a new album</span></div>
+
+    <div class="divider"></div>
+
+    <div class="menu-item"><i class="ri-question-line"></i><span class="menu-title">Help</span></div>
+    <div class="menu-item"><i class="ri-mail-line"></i><span class="menu-title">Feedback or suggestion</span></div>
+    <div class="menu-item"><i class="ri-settings-3-line"></i><span class="menu-title">Settings</span></div>
+  </div>
+
+  <script>
+    // ग्रिड में स्मूथ प्लेसहोल्डर इमेज जोड़ना
+    const grid = document.getElementById('galleryGrid');
+    for (let i = 1; i <= 36; i++) {
+      const item = document.createElement('div');
+      item.className = 'grid-item';
+      item.innerHTML = `<img src="https://picsum.photos/300/300?random=${i}" loading="lazy" alt="Photo">`;
+      grid.appendChild(item);
+    }
+
+    // मेन्यू खोलने और बंद करने का लॉजिक
+    const menuBtn = document.getElementById('openMenuBtn');
+    const overlay = document.getElementById('overlay');
+    const sheet = document.getElementById('bottomSheet');
+
+    function openMenu() {
+      overlay.style.display = 'block';
+      setTimeout(() => { sheet.style.bottom = '0'; }, 10);
+    }
+
+    function closeMenu() {
+      sheet.style.bottom = '-100%';
+      setTimeout(() => { overlay.style.display = 'none'; }, 300);
+    }
+
+    menuBtn.addEventListener('click', openMenu);
+    overlay.addEventListener('click', closeMenu);
+  </script>
+</body>
+</html>
